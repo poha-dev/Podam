@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>포담 — 머더미스터리 GM 툴</title>
+<link rel="stylesheet" href="/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🕵️</text></svg>">
+</head>
+<body>
+<div class="center">
+
+  <div class="card" id="createCard">
+    <h1>🕵️ 포담</h1>
+    <p class="muted" style="margin-top:0">머더미스터리 GM용 1:1 비공개 채널</p>
+
+    <div class="notice hidden" id="publicUrlBox">
+      <b>🔗 플레이어에게 줄 주소를 찾았습니다.</b><br>
+      <div class="linkbox" style="margin:8px 0 4px">
+        <code id="publicUrlText"></code>
+        <button class="ghost" data-copy="publicUrlText">복사</button>
+      </div>
+      <button class="primary" id="goPublic" style="width:100%;margin-top:6px">
+        이 주소로 열기 (여기서 방을 만드세요)
+      </button>
+    </div>
+
+    <div class="warn-box hidden" id="localWarn">
+      <b>⚠️ 지금 주소는 집 안(또는 이 PC)에서만 열립니다.</b><br>
+      이대로 방을 만들면 플레이어 링크도 같은 주소로 만들어져
+      <b>바깥에 있는 사람은 접속할 수 없습니다.</b><br>
+      <span class="faint">공개 주소(<code>https://….trycloudflare.com</code>)로 다시 접속해서 만드세요.
+      내 PC로 돌린다면 <code>start-session.bat</code> 창에, NAS로 돌린다면
+      <code>mm-tunnel</code> 컨테이너 로그에 그 주소가 있습니다.</span>
+    </div>
+
+    <div class="field hidden" id="createPassField">
+      <label for="createPassword">서버 암호 <span class="faint">(이 서버를 쓸 수 있는 사람만)</span></label>
+      <input id="createPassword" type="password" maxlength="60" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="roomName">세션 이름</label>
+      <input id="roomName" placeholder="예: 광기의 산맥" maxlength="60" autofocus>
+    </div>
+    <div class="field">
+      <label for="gmNickname">내 GM 닉네임</label>
+      <input id="gmNickname" placeholder="예: 진행자" maxlength="20" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="password">플레이어 입장 암호 <span class="faint">(비워두면 코드만으로 입장)</span></label>
+      <input id="password" placeholder="예: madness" maxlength="40" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="gmPassword">GM 암호 <span class="faint">(다른 GM을 부를 때 필요)</span></label>
+      <input id="gmPassword" placeholder="예: 0429" maxlength="40" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="days">보관 기간</label>
+      <select id="days">
+        <option value="1">1일</option>
+        <option value="7" selected>7일</option>
+        <option value="30">30일</option>
+      </select>
+      <div class="faint" style="font-size:12px;margin-top:4px">
+        지나면 새 플레이어는 못 들어옵니다. 그 뒤 30일이 더 지나면 기록과 파일이 자동으로 지워집니다.
+      </div>
+    </div>
+    <div class="field hidden" id="moduleField">
+      <label>쓸 기능 고르기 <span class="faint">(나중에 대시보드에서 바꿀 수 있습니다)</span></label>
+      <div id="moduleChecks"></div>
+    </div>
+    <div class="field">
+      <label for="bundleFile">룸 셋팅 파일 <span class="faint">(선택 — 저장해 둔 배역·자료·질문지)</span></label>
+      <input type="file" id="bundleFile" accept=".zip">
+    </div>
+    <button class="primary" id="createBtn" style="width:100%">방 만들기</button>
+    <div class="error" id="err"></div>
+
+    <hr style="border:none;border-top:1px solid var(--line);margin:22px 0">
+    <div class="faint" style="font-size:12px">
+      플레이어는 GM이 준 <b>링크</b>로만 들어옵니다. 이 화면에서 코드로 참가할 수는 없습니다.
+      <a href="/guide.html" target="_blank">사용법 보기</a>
+    </div>
+  </div>
+
+  <div class="card hidden" id="doneCard">
+    <h1>✅ 방이 만들어졌습니다</h1>
+    <h2 id="doneName"></h2>
+
+    <div class="notice">
+      <b>GM 링크는 이 화면에서만 볼 수 있습니다.</b> 즐겨찾기하거나 복사해 두세요.
+      서브 GM에게는 이 링크와 GM 암호를 함께 주면 됩니다. 플레이어에게는 주지 마세요.
+    </div>
+
+    <div class="field">
+      <label>🔑 GM 링크 (GM 전용)</label>
+      <div class="linkbox"><code id="gmLink"></code><button class="ghost" data-copy="gmLink">복사</button></div>
+    </div>
+    <div class="field">
+      <label>🔗 플레이어 링크 (모두에게 배포)</label>
+      <div class="linkbox"><code id="plLink"></code><button class="ghost" data-copy="plLink">복사</button></div>
+      <p class="faint">방 코드: <b id="codeText"></b></p>
+      <p class="faint hidden" id="passLine">입장 암호: <b id="passText"></b> — 플레이어에게 링크와 함께 알려주세요.</p>
+      <p class="faint hidden" id="gmPassLine">GM 암호: <b id="gmPassText"></b> — 서브 GM에게 <b>GM 링크와 함께</b> 알려주세요.</p>
+    </div>
+
+    <button class="primary" id="goGm" style="width:100%">GM 대시보드 열기 (새 탭)</button>
+  </div>
+
+</div>
+
+<script src="/shared.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const err = (m) => { $('err').textContent = m || ''; };
+
+$('createBtn').addEventListener('click', async () => {
+  err('');
+  $('createBtn').disabled = true;
+  try {
+    const name = $('roomName').value.trim();
+    const days = Number($('days').value);
+    const password = $('password').value.trim();
+    const gmPassword = $('gmPassword').value.trim();
+    const gmNickname = $('gmNickname').value.trim() || 'GM';
+    const { room, linkToken, gmToken } = await MM.api('/api/rooms', {
+      method: 'POST',
+      body: {
+        name, days, password, gmPassword, gmNickname,
+        createPassword: $('createPassword').value,
+        modules: [...document.querySelectorAll('#moduleChecks input:checked')].map((c) => c.value),
+      },
+    });
+    // 방을 만든 사람의 개인 GM 세션을 저장해 두면 GM 링크로 바로 들어간다.
+    try { localStorage.setItem(`mm.gm.${room.id}`, gmToken); } catch {}
+
+    // 룸 셋팅을 골랐으면 방금 받은 GM 토큰으로 이어서 넣는다.
+    // 여기서 실패해도 방은 이미 만들어졌으므로 되돌리지 않고 알려만 준다.
+    const bundle = $('bundleFile').files?.[0];
+    if (bundle) {
+      $('createBtn').textContent = '룸 셋팅 넣는 중…';
+      try {
+        const fd = new FormData();
+        fd.append('bundle', bundle);
+        await MM.api('/api/gm/bundle/import', {
+          method: 'POST', headers: { 'x-gm-token': gmToken }, body: fd,
+        });
+      } catch (be) {
+        alert(`방은 만들어졌지만 룸 셋팅을 넣지 못했습니다.\n${be.message}\n\n`
+          + 'GM 대시보드의 「📦 룸 셋팅 불러오기」로 다시 시도할 수 있습니다.');
+      } finally {
+        $('createBtn').textContent = '방 만들기';
+      }
+    }
+    // 새 세션은 알림음 설정(등록한 소리 포함)을 처음 상태로 시작한다.
+    MM.Sound.reset();
+
+    // GM 토큰은 URL 프래그먼트에 둔다 — 서버 로그나 리퍼러에 남지 않는다.
+    const gmUrl = `${MM.origin()}/gm.html#${room.id}:${linkToken}`;
+    const plUrl = `${MM.origin()}/r/${room.code}`;
+
+    $('doneName').textContent = room.name;
+    $('gmLink').textContent = gmUrl;
+    $('plLink').textContent = plUrl;
+    $('codeText').textContent = room.code;
+    if (password) {
+      $('passText').textContent = password;
+      $('passLine').classList.remove('hidden');
+    }
+    if (gmPassword) {
+      $('gmPassText').textContent = gmPassword;
+      $('gmPassLine').classList.remove('hidden');
+    }
+    if (isLocalOnly()) $('doneCard').prepend($('localWarn'));
+    // 새 탭으로 연다 — 이 화면의 링크를 계속 볼 수 있어야 한다.
+    $('goGm').onclick = () => { window.open(gmUrl, '_blank', 'noopener'); };
+
+    // 실수로 창을 닫아도 같은 브라우저에서는 복구할 수 있게 남겨둔다.
+    try {
+      const saved = JSON.parse(localStorage.getItem('mm.gmRooms') || '[]');
+      saved.unshift({ id: room.id, code: room.code, name: room.name, token: linkToken, at: Date.now() });
+      localStorage.setItem('mm.gmRooms', JSON.stringify(saved.slice(0, 20)));
+    } catch {}
+
+    $('createCard').classList.add('hidden');
+    $('doneCard').classList.remove('hidden');
+  } catch (e) {
+    err(e.message);
+  } finally {
+    $('createBtn').disabled = false;
+  }
+});
+
+$('roomName').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('createBtn').click(); });
+
+// 이 주소로 만든 링크를 남에게 줄 수 있는지 판단한다.
+// localhost뿐 아니라 사설 IP(192.168.x, 10.x, 172.16~31.x)도 집 밖에서는 안 열린다.
+function isLocalOnly() {
+  const h = location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1' || h === '::1' || h === '') return true;
+  if (/^10\./.test(h) || /^192\.168\./.test(h)) return true;
+  if (/^172\.(1[6-9]|2\d|3[01])\./.test(h)) return true;
+  return /\.local$/.test(h);           // NAS 이름으로 접속한 경우
+}
+if (isLocalOnly()) {
+  $('localWarn').classList.remove('hidden');
+  // 서버가 공개 주소를 알고 있으면 링크는 그 주소로 나가므로 경고할 일이 없다.
+  // NAS나 PC에서 터널이 함께 돌고 있으면 공개 주소를 직접 알아낼 수 있다.
+  // 그러면 로그를 뒤질 필요 없이 바로 그 주소로 넘어가게 해준다.
+  MM.api('/api/config').then(({ publicUrl: url }) => {
+    if (!url) return;
+    MM.setOrigin(url);
+    $('publicUrlText').textContent = url;
+    $('publicUrlBox').classList.remove('hidden');
+    $('goPublic').onclick = () => { location.href = url; };
+    $('localWarn').classList.add('hidden');
+  }).catch(() => { /* 터널이 없으면 그냥 경고만 */ });
+}
+
+document.addEventListener('click', async (e) => {
+  const id = e.target.dataset?.copy;
+  if (!id) return;
+  await MM.copyAndTell($(id).textContent);
+});
+
+// 이 서버에서 쓸 수 있는 모듈 목록. 방마다 골라 켤 수 있다.
+MM.api('/api/modules').then(({ modules }) => {
+  if (!modules || modules.length === 0) return;
+  $('moduleChecks').innerHTML = modules.map((m) => `
+    <label class="chip" style="display:flex;gap:7px;align-items:flex-start;margin:4px 0;padding:7px 9px;cursor:pointer">
+      <input type="checkbox" value="${m.id}" ${m.defaultOn ? 'checked' : ''}
+             style="width:auto;margin-top:2px;accent-color:var(--accent)">
+      <span><b>${MM.esc(m.name)}</b><br><span class="faint">${MM.esc(m.description)}</span></span>
+    </label>`).join('');
+  $('moduleField').classList.remove('hidden');
+}).catch(() => { /* 모듈이 없으면 그냥 넘어간다 */ });
+
+// 서버에 암호가 걸려 있으면 입력칸을 띄운다.
+MM.api('/api/config')
+  .then(({ needsCreatePassword, publicUrl }) => {
+    if (publicUrl) MM.setOrigin(publicUrl);
+    if (needsCreatePassword) {
+      $('createPassField').classList.remove('hidden');
+      $('createPassword').focus();
+    }
+  })
+  .catch(() => { /* 조회 실패해도 방 만들기는 그대로 시도할 수 있다 */ });
+
+// 내가 만든 방 목록. 닫아둔 방도 여기서 다시 들어가 열 수 있다.
+try {
+  const load = () => JSON.parse(localStorage.getItem('mm.gmRooms') || '[]');
+  const box = document.createElement('div');
+  box.className = 'field';
+  box.style.marginTop = '18px';
+  const paint = () => {
+    const saved = load();
+    box.hidden = saved.length === 0;
+    box.innerHTML =
+      '<label>내가 만든 방</label>' +
+      saved.slice(0, 8).map((r) =>
+        `<div class="linkbox" style="margin:4px 0">
+           <code style="flex:1">${MM.esc(r.name)} <span class="faint">(${MM.esc(r.code)})</span></code>
+           <button class="ghost" data-openroom="${MM.esc(r.id)}:${MM.esc(r.token)}">GM으로 열기</button>
+           <button class="danger" data-delroom="${MM.esc(r.id)}">방 삭제</button>
+         </div>`).join('');
+  };
+  const forget = (id) => {
+    localStorage.setItem('mm.gmRooms', JSON.stringify(load().filter((r) => r.id !== id)));
+    paint();
+  };
+
+  /** 방을 서버에서 완전히 지운다 (대화 기록·파일 모두). */
+  async function deleteRoom(r) {
+    if (!r) return;
+    if (!confirm(`「${r.name}」(${r.code}) 방을 삭제합니다.\n\n대화 기록과 올린 파일이 모두 지워지고 되돌릴 수 없습니다.\n접속 중인 플레이어도 바로 나가집니다. 계속할까요?`)) return;
+    // 이미 없어진 방이면 목록에서만 정리한다.
+    const exists = await fetch(`/api/rooms/by-code/${encodeURIComponent(r.code)}`)
+      .then((x) => x.status !== 404).catch(() => true);
+    if (!exists) { forget(r.id); MM.toast('이미 지워진 방이라 목록에서 정리했습니다'); return; }
+    const session = localStorage.getItem(`mm.gm.${r.id}`);
+    if (!session) {
+      MM.toast('이 브라우저에 GM 로그인 정보가 없습니다. 「GM으로 열기」로 들어가 대시보드에서 삭제해 주세요', true);
+      return;
+    }
+    try {
+      await MM.api('/api/gm/room', {
+        method: 'DELETE', headers: { 'x-gm-token': session }, body: { confirmCode: r.code },
+      });
+      localStorage.removeItem(`mm.gm.${r.id}`);
+      forget(r.id);
+      MM.toast('방을 삭제했습니다');
+    } catch (err) {
+      MM.toast(err.message === '권한이 없습니다'
+        ? 'GM 로그인이 만료됐습니다. 「GM으로 열기」로 들어가 대시보드에서 삭제해 주세요'
+        : err.message, true);
+    }
+  }
+
+  paint();
+  $('createCard').appendChild(box);
+  box.addEventListener('click', (e) => {
+    const v = e.target.dataset?.openroom;
+    if (v) window.open(`${location.origin}/gm.html#${v}`, '_blank', 'noopener');
+    const id = e.target.dataset?.delroom;
+    if (id) deleteRoom(load().find((r) => r.id === id));
+  });
+} catch {}
+
+</script>
+</body>
+</html>

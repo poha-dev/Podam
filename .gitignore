@@ -1,0 +1,24 @@
+node_modules/
+data/
+.env
+.env.*
+!.env.example
+src/settings.local.json
+
+# 데이터·로그·백업
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.log
+*.bak
+*.tmp
+backup/
+
+# 에디터·OS 부산물
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+.claude/settings.local.json
+dist/

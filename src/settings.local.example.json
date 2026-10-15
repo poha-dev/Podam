@@ -1,0 +1,9 @@
+{
+  "_설명": "이 파일을 settings.local.json 으로 복사해서 쓰세요. YAML을 고치기 어려울 때 이 파일만 고치면 됩니다. 몇 초 안에 반영되고 컨테이너를 다시 시작하지 않아도 됩니다.",
+  "REQUIRE_CREATE_PASSWORD": "true",
+  "CREATE_PASSWORD": "여기에_방_만들기_암호",
+  "PURGE_GRACE_DAYS": "7",
+  "BACKUP_DIR": "/backup",
+  "BACKUP_EVERY_HOURS": "6",
+  "BACKUP_KEEP": "7"
+}

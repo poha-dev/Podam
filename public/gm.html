@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GM 대시보드</title>
+<link rel="stylesheet" href="/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🕵️</text></svg>">
+</head>
+<body>
+
+<!-- GM 로그인 -->
+<div class="center" id="gate">
+  <div class="card">
+    <h1>🕵️ GM 입장</h1>
+    <p class="muted" id="gateMsg" style="margin-top:0">확인 중…</p>
+
+    <div id="loginForm" class="hidden">
+      <div class="field hidden" id="gmPassField">
+        <label for="gmPass">GM 암호</label>
+        <input id="gmPass" type="password" placeholder="방을 만든 사람에게 받은 암호" maxlength="40" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="gmNick">GM 닉네임</label>
+        <input id="gmNick" placeholder="예: 진행자 / 서브 GM" maxlength="20" autocomplete="off">
+      </div>
+      <button class="primary" id="gmEnterBtn" style="width:100%">입장하기</button>
+    </div>
+
+    <div class="error" id="gateErr"></div>
+    <p class="faint">GM 링크가 잘못되었거나 만료되었으면 방을 만든 사람에게 다시 받으세요.</p>
+    <button class="ghost" style="width:100%;margin-top:8px" onclick="location.href='/'">처음으로</button>
+  </div>
+</div>
+
+<div class="app hidden" id="app">
+
+  <!-- 좌측: 플레이어 + GM -->
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <div class="title" id="roomName"></div>
+      <div class="faint">
+        <a href="#" id="copyInvite">🔗 플레이어 링크 복사</a>
+      </div>
+      <div class="faint">
+        암호 <b id="passText">없음</b>
+        <button class="eye" id="passEye" title="암호 보기"></button>
+        · <a href="#" id="changePass">변경</a>
+      </div>
+      <div class="faint">
+        GM 암호 <b id="gmPassText">없음</b>
+        <button class="eye" id="gmPassEye" title="GM 암호 보기"></button>
+        · <a href="#" id="copyGmInvite">GM 링크</a>
+      </div>
+      <div class="faint">
+        나: <b id="myName"></b> <span id="myColorPick"></span> · <a href="#" id="renameMe">이름 바꾸기</a>
+      </div>
+    </div>
+
+    <div class="sidebar-actions">
+      <button class="ghost" id="selAll" title="모든 플레이어를 발송 대상으로">전체</button>
+      <button class="ghost" id="selNone" title="발송 대상 선택 해제">해제</button>
+      <select id="soundKit" class="soundsel" title="알림음 고르기"></select>
+      <input type="range" id="soundVol" class="vol" min="0" max="300" step="10" title="알림음 크기">
+      <button class="ghost" id="soundBtn" title="알림음">🔔</button>
+    </div>
+
+    <div class="listscroll">
+      <div class="listhead">플레이어 <span class="faint">끌어서 순서 변경</span></div>
+      <div class="plist" id="plist"></div>
+
+      <div class="listhead">GM <span class="faint" id="gmCount"></span></div>
+      <div class="glist" id="glist"></div>
+    </div>
+
+    <div class="sidebar-actions" style="border-top:1px solid var(--line);border-bottom:none">
+      <button class="ghost" id="exportBtn">📥 기록 내보내기</button>
+      <button class="ghost" id="exportGmBtn" title="GM끼리의 대화만 따로 내보냅니다">📥 GM 대화</button>
+      <button class="ghost" id="bundleOutBtn"
+              title="배역·자료·질문지를 파일 하나로 저장합니다 (대화는 담기지 않습니다)">📦 룸 셋팅 저장</button>
+      <button class="ghost" id="moduleBtn" title="이 방에서 쓸 기능 고르기">🧩 모듈</button>
+      <button class="ghost" onclick="window.open('/guide.html#gm','_blank')" title="사용법 보기">❔ 도움말</button>
+      <button class="ghost" id="lockJoinBtn"
+              title="새로 들어오는 것만 막습니다. 이미 들어온 플레이어는 그대로 씁니다">🔓 입장 열림</button>
+      <button class="ghost" id="closeRoomBtn">방 닫기</button>
+      <button class="danger" id="deleteRoomBtn" title="되돌릴 수 없습니다">방 삭제</button>
+    </div>
+  </div>
+
+  <!-- 중앙: 대화 -->
+  <div class="main" style="position:relative">
+    <button class="paneltoggle toggle-left" id="toggleLeft" title="접기">◀</button>
+    <button class="paneltoggle toggle-right" id="toggleRight" title="접기">▶</button>
+    <div class="topbar">
+      <div class="grow">
+        <div class="who" id="threadName">플레이어를 선택하세요</div>
+        <div class="faint" id="threadSub"></div>
+      </div>
+      <span class="chip" id="connChip">연결 중…</span>
+    </div>
+
+    <div class="timerbar" id="timerBar">
+      <span class="tm-time">0:00</span>
+      <span class="tm-label"></span>
+      <input type="text" id="tmMinutes" placeholder="10:00" title="분:초 또는 분">
+      <input type="text" id="tmLabel" placeholder="라운드 이름" style="width:110px" title="화면에 함께 보일 이름">
+      <select id="tmSound" title="끝났을 때 울릴 소리"></select>
+      <button class="primary" id="tmStart">시작</button>
+      <button class="ghost" id="tmPause">멈춤</button>
+      <button class="ghost" id="tmReset">되돌리기</button>
+      <button class="ghost" id="tmClear" title="타이머 치우기">✕</button>
+    </div>
+
+    <div class="warn-box hidden" id="localWarn" style="margin:12px 18px 0">
+      <b>⚠️ 지금 주소는 집 안(또는 이 PC)에서만 열립니다.</b>
+      이 방의 플레이어 링크는 바깥에 있는 사람에게서 열리지 않습니다.
+      <span class="faint">공개 주소(<code>https://….trycloudflare.com</code>)로 접속해 방을 다시 만드세요.</span>
+    </div>
+
+    <div class="msgs" id="msgs">
+      <div class="empty">왼쪽에서 플레이어를 선택하면 1:1 대화가 열립니다.<br>
+        여러 명을 체크하면 같은 내용을 한 번에 보낼 수 있습니다.<br>
+        아래 GM 목록에서는 GM끼리만 보이는 대화를 할 수 있습니다.</div>
+    </div>
+    <div class="typing" id="typing"></div>
+
+    <div class="composer" id="composer">
+      <div class="tools" id="playerTools">
+        <span class="chip" id="targetChip">받는 사람: 없음</span>
+        <button class="ghost" id="fileBtn">📎 파일 첨부 발송</button>
+        <input type="file" id="fileInput" class="hidden" multiple>
+        <label class="chip" style="cursor:pointer">
+          <input type="checkbox" id="keepInLib" style="width:auto;margin-right:5px;vertical-align:-1px">
+          자료함에도 보관
+        </label>
+        <input id="npcName" list="npcList" placeholder="NPC 이름으로 말하기"
+               maxlength="30" style="width:150px" title="비우면 내 GM 이름으로 나갑니다">
+        <datalist id="npcList"></datalist>
+        <span class="faint" id="uploadState"></span>
+      </div>
+      <div class="row">
+        <textarea id="input" class="grow" rows="1"
+          placeholder="선택한 플레이어에게 보낼 메시지 (Enter 전송 · Shift+Enter 줄바꿈)"></textarea>
+        <button class="primary" id="sendBtn">보내기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 우측: 자료함 -->
+  <div class="rightbar">
+    <div class="tabs" id="rtabs">
+      <button class="on" data-rtab="lib">📁 자료함</button>
+      <button data-rtab="star">⭐ 즐겨찾기 <span id="starCount"></span></button>
+      <button data-rtab="ask">❓ 질문지</button>
+    </div>
+
+    <div class="panel" id="panelLib" data-rpanel="lib">
+      <div class="row" style="margin-bottom:10px">
+        <select id="roleSelect" class="grow" title="어느 배역의 자료함을 볼지">
+          <option value="__common">공용 자료함</option>
+        </select>
+        <button class="ghost" id="roleManageBtn" title="배역 관리">⚙</button>
+      </div>
+
+      <div id="roleManager" class="hidden" style="background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:10px">
+        <div class="faint" style="margin-bottom:6px">배역 추가 (한 줄에 하나)</div>
+        <textarea id="roleNames" rows="3" placeholder="집사&#10;의사&#10;조카"></textarea>
+        <div class="row" style="margin-top:6px">
+          <button class="primary grow" id="roleAddBtn">추가</button>
+        </div>
+        <div id="roleList" style="margin-top:10px"></div>
+      </div>
+
+      <button class="primary" id="roleBatchBtn" style="width:100%;margin-bottom:10px"
+              title="배역을 맡은 사람 각각에게 그 배역의 다음 자료를 보냅니다">
+        📤 배역별 다음 자료 일괄 발송
+      </button>
+
+      <button class="ghost" id="libSendAllBtn" style="width:100%;margin-bottom:6px"
+              title="지금 보고 있는 자료함의 파일을 순서대로 모두 보냅니다">📢 이 자료함 모두 발송</button>
+      <div class="row" style="margin-bottom:10px">
+        <button class="ghost grow" id="libClearBtn" title="지금 보고 있는 자료함을 비웁니다">🗑 비우기</button>
+        <button class="ghost grow" id="libClearAllBtn" title="모든 배역 자료함을 비웁니다">🗑 전부 비우기</button>
+      </div>
+
+      <button class="ghost" id="bundleInBtn" style="width:100%;margin-bottom:10px"
+              title="저장해 둔 룸 셋팅에서 배역·자료·질문지를 가져옵니다">📦 룸 셋팅 불러오기</button>
+      <input type="file" id="bundleInput" class="hidden" accept=".zip">
+
+      <div id="roleHolder" class="faint" style="margin-bottom:8px"></div>
+
+      <div class="drop" id="drop">여기에 PDF를 끌어다 놓거나<br>클릭해서 이 배역 자료함에 넣으세요</div>
+      <input type="file" id="libInput" class="hidden" multiple>
+      <div id="libList"></div>
+    </div>
+
+    <div class="panel hidden" id="panelStar" data-rpanel="star">
+      <div id="starList"></div>
+    </div>
+
+    <div class="panel hidden" id="panelAsk" data-rpanel="ask">
+      <div class="faint" style="margin-bottom:8px">
+        미리 만들어 두고, 세션 중에는 「보내기」만 누르면 됩니다.<br>
+        대화창에서 <code>/질문</code> 으로 바로 보낼 수도 있습니다.
+      </div>
+      <input id="askTitle" placeholder="질문지 제목 (예: 최종 지목)" maxlength="200">
+      <textarea id="askItems" rows="4" style="margin-top:6px"
+        placeholder="세부 질문을 한 줄에 하나씩&#10;범인은 누구인가?&#10;그렇게 생각한 근거는?"></textarea>
+      <button class="primary" id="askSaveBtn" style="width:100%;margin-top:6px">질문지 저장</button>
+      <div id="askTplList" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/shared.js"></script>
+<script src="/gm.js"></script>
+</body>
+</html>

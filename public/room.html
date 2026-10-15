@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>포담</title>
+<link rel="stylesheet" href="/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>💬</text></svg>">
+</head>
+<body>
+
+<!-- 입장 화면 -->
+<div class="center" id="gate">
+  <div class="card">
+    <h1 id="gateRoom">불러오는 중…</h1>
+    <p class="muted" style="margin-top:0">GM과 1:1로 대화하는 비공개 채널입니다.</p>
+    <div class="field hidden" id="passField">
+      <label for="pass">입장 암호</label>
+      <input id="pass" type="password" placeholder="GM에게 받은 암호" maxlength="40" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="nick">사용할 닉네임</label>
+      <input id="nick" placeholder="예: 사냥꾼" maxlength="20" autocomplete="off">
+    </div>
+    <button class="primary" id="enterBtn" style="width:100%">입장하기</button>
+    <div class="error" id="gateErr"></div>
+    <div class="notice">
+      대화 내용은 GM만 볼 수 있고, 다른 플레이어에게는 보이지 않습니다.<br>
+      새 메시지가 오면 알림음이 울립니다.
+    </div>
+  </div>
+</div>
+
+<!-- 채팅 화면 -->
+<div class="app hidden" id="chat">
+  <div class="main">
+    <div class="topbar">
+      <div class="grow">
+        <div class="who" id="roomTitle"></div>
+        <div class="faint">
+          <b id="meName"></b><span id="meRole"></span> <span id="meColorPick"></span> ·
+          <a href="#" id="renameBtn">이름 바꾸기</a>
+        </div>
+      </div>
+      <span class="chip" id="connChip">연결 중…</span>
+      <select id="soundKit" class="soundsel" title="알림음 고르기"></select>
+      <input type="range" id="soundVol" class="vol" min="0" max="300" step="10" title="알림음 크기">
+      <button class="ghost" id="soundBtn" title="알림음 켜기/끄기">🔔</button>
+    </div>
+
+    <div class="timerbar hidden" id="timerBar">
+      <span class="tm-time">0:00</span>
+      <span class="tm-label"></span>
+    </div>
+
+    <div class="tabs pl-tabs" id="ptabs">
+      <button class="on" data-ptab="chat">💬 대화</button>
+      <button data-ptab="files">📁 받은 자료 <span id="fileCount"></span></button>
+      <button data-ptab="star">⭐ 즐겨찾기 <span id="starCount"></span></button>
+      <button data-ptab="memo">📝 메모</button>
+      <button id="exportMine" data-tabitem="export" title="내 대화 기록을 파일로 저장">📥 내보내기</button>
+      <button id="helpBtn" data-tabitem="help" title="사용법 보기">❔ 도움말</button>
+    </div>
+
+    <!-- 대화 -->
+    <div class="pane" id="paneChat" data-ppane="chat">
+      <div class="msgs" id="msgs"></div>
+      <div class="typing" id="typing"></div>
+      <div class="composer">
+        <div class="tools">
+          <button class="ghost" id="fileBtn">📎 파일 보내기</button>
+          <input type="file" id="fileInput" class="hidden" multiple>
+          <span class="faint" id="uploadState"></span>
+        </div>
+        <div class="row">
+          <textarea id="input" class="grow" rows="1"
+            placeholder="GM에게 메시지 보내기 (Enter 전송 · Shift+Enter 줄바꿈)"></textarea>
+          <button class="primary" id="sendBtn">보내기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 받은 자료 -->
+    <div class="pane hidden" id="paneFiles" data-ppane="files">
+      <div class="panel-wide" id="fileList"></div>
+    </div>
+
+    <!-- 즐겨찾기 -->
+    <div class="pane hidden" id="paneStar" data-ppane="star">
+      <div class="panel-wide" id="starList"></div>
+    </div>
+
+    <!-- 개인 메모 -->
+    <div class="pane hidden" id="paneMemo" data-ppane="memo">
+      <div class="panel-wide">
+        <p class="faint" style="margin-top:0">
+          이 메모는 <b>내 브라우저에만</b> 저장됩니다. GM도 다른 플레이어도 볼 수 없습니다.
+          <span id="memoState"></span>
+        </p>
+        <textarea id="memo" class="memo" placeholder="누가 어디에 있었는지, 어떤 말이 걸리는지 적어두세요."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/shared.js"></script>
+<script src="/room.js"></script>
+</body>
+</html>

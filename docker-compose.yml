@@ -1,0 +1,82 @@
+# QNAP NAS(Container Station)에서 쓰는 설정.
+#
+#   Container Station → 애플리케이션 → 만들기 → 이 파일 내용을 붙여넣기
+#   또는 SSH에서:  docker compose up -d --build
+#
+# 포트포워딩은 하지 않는다. cloudflared가 바깥으로 나가는 연결만 쓰므로
+# 공유기에 구멍을 뚫지 않아도 되고, NAS가 인터넷에 노출되지도 않는다.
+
+# Container Station에 이 내용을 붙여넣으면 '작업 폴더'가 없어서 상대 경로(./)를
+# 해석하지 못한다. 그래서 NAS의 실제 경로를 그대로 적는다.
+# 프로젝트를 다른 곳에 두었다면 아래 세 군데의 경로만 바꾸면 된다.
+
+services:
+  app:
+    build: /share/Container/podam
+    container_name: podam
+    restart: unless-stopped
+    environment:
+      DATA_DIR: /data
+      PORT: "3000"
+      # 파일 하나당 최대 크기. NAS 용량이 넉넉하면 올려도 된다.
+      MAX_UPLOAD_MB: "200"
+      # cloudflared 뒤에 있으므로 원래 접속자 IP를 X-Forwarded-For에서 읽는다.
+      TRUST_PROXY: "1"
+      # 방 만들기에 암호를 요구할지.
+      #   "true"  → 아래 CREATE_PASSWORD 를 아는 사람만 방을 만들 수 있다
+      #   "false" → 주소를 아는 누구나 방을 만들 수 있다
+      REQUIRE_CREATE_PASSWORD: "true"
+      # 위를 true 로 둘 때 쓸 암호. 내가 정한 값으로 바꾸고 나만 알고 있으면 된다.
+      CREATE_PASSWORD: "여기에_방_만들기_암호"
+      # 보관 기간이 끝나고 며칠 더 지나면 방·기록·파일을 자동 삭제할지 (0 = 끄기)
+      PURGE_GRACE_DAYS: "7"
+      # 대화 기록과 올린 자료의 사본을 둘 곳. 비우면 백업하지 않는다.
+      # 아래 volumes 의 /backup 과 짝이다 — File Station 에서 열어볼 수 있다.
+      BACKUP_DIR: "/backup"
+      BACKUP_EVERY_HOURS: "6"
+      BACKUP_KEEP: "7"
+    volumes:
+      # 대화 기록과 업로드 파일이 여기 쌓인다. NAS 공유폴더로 바꿔도 된다.
+      #   예)  /share/CACHEDEV1_DATA/podam-data:/data
+      - mm-data:/data
+
+      # 코드를 컨테이너 안에 복사하지 않고 그대로 들여다보게 한다.
+      # 이렇게 해두면 파일만 덮어쓰면 반영되므로 매번 다시 빌드하지 않아도 된다.
+      #   public/ 을 고치면  → 브라우저 새로고침만
+      #   src/ 을 고치면     → 컨테이너 재시작(몇 초)
+      #   package.json 바꾸면 → 그때만 다시 빌드
+      #
+      - /share/Container/podam/src:/app/src:ro
+      - /share/Container/podam/public:/app/public:ro
+
+      # 백업 사본이 쌓이는 곳. NAS 공유폴더라 File Station 에서 그대로 보인다.
+      # 폴더가 없으면 먼저 만들고, 컨테이너(uid 1000)가 쓸 수 있어야 한다.
+      - /share/Container/mm-backup:/backup
+    ports:
+      # 집 안에서 NAS 주소로 열어볼 때만 쓴다 (예: http://192.168.0.10:8823).
+      # 집 안 기기라면 누구나 닿을 수 있다. 아예 막고 싶으면 이 두 줄을 지우고
+      # 터널 주소로만 접속하면 된다 (대신 현재 주소를 로그에서 찾아야 한다).
+      - "8823:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: mm-tunnel
+    restart: unless-stopped
+    depends_on:
+      - app
+    # 임시 주소(trycloudflare)로 띄운다. NAS는 계속 켜져 있으므로
+    # 이 컨테이너를 다시 시작할 때만 주소가 바뀐다.
+    #
+    # 나중에 도메인을 마련하면 이 두 줄을 아래처럼 바꾸면 고정 주소가 된다:
+    #   command: tunnel --no-autoupdate run --token <Cloudflare에서 받은 토큰>
+    # --metrics 를 열어두면 앱이 터널 주소를 직접 읽어 화면에 띄울 수 있다.
+    command: tunnel --no-autoupdate --metrics 0.0.0.0:20241 --url http://app:3000
+
+volumes:
+  mm-data:

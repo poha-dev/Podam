@@ -1,0 +1,603 @@
+<!doctype html>
+<!--
+  사용 가이드.
+  기능이 바뀌어도 자동으로 갱신하지 않는다. "가이드 갱신하자"고 할 때만 손본다.
+
+  /guide.html       → 플레이어용만 보인다 (플레이어 화면의 도움말이 여기로 온다)
+  /guide.html#gm    → GM용. 위 탭으로 플레이어 화면도 볼 수 있다.
+-->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>사용 가이드 — 포담</title>
+<link rel="stylesheet" href="/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🕵️</text></svg>">
+<style>
+  body{overflow-y:auto}
+  .guide{max-width:880px;margin:0 auto;padding:36px 20px 80px}
+  .guide h1{font-size:23px;margin:0 0 6px}
+  .lead{color:var(--fg-dim);font-size:14px;margin:0 0 20px}
+  .guide h2{font-size:18px;margin:0 0 14px;display:flex;align-items:center;gap:9px}
+  .guide h2 .num{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;
+       background:var(--accent);color:#0d1017;font-size:14px;font-weight:700;flex-shrink:0}
+  .guide h3{font-size:14.5px;margin:18px 0 6px;color:var(--fg)}
+  .guide p,.guide li{color:var(--fg-dim);font-size:13.5px;line-height:1.8}
+  .guide b{color:var(--fg)}
+  .guide ul,.guide ol{padding-left:22px;margin:6px 0}
+  .guide li{margin:3px 0}
+  .guide table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}
+  .guide th,.guide td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  .guide th{background:var(--bg3);color:var(--fg);font-weight:600;white-space:nowrap}
+  .guide td{color:var(--fg-dim)}
+  .guide td b,.guide th b{color:var(--fg)}
+
+  /* 섹션 카드 */
+  .sec{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:14px 0}
+  .steps{display:grid;gap:10px;margin:14px 0}
+  .step{display:flex;gap:12px;background:var(--bg3);border-radius:10px;padding:12px 14px}
+  .step .no{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;
+       background:var(--accent-dim);color:#dbe3ff;font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px}
+  .step .t{font-weight:600;color:var(--fg);font-size:13.5px;margin-bottom:2px}
+  .step .d{color:var(--fg-dim);font-size:13px;line-height:1.7}
+
+  /* 목차 */
+  .toc{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+  .toc a{background:var(--bg3);border:1px solid var(--line);border-radius:20px;padding:5px 13px;
+       font-size:12.5px;color:var(--fg-dim);text-decoration:none}
+  .toc a:hover{color:var(--fg);border-color:var(--accent-dim)}
+
+  .tabs2{display:flex;gap:8px;margin:0 0 22px}
+  .tabs2 button{border:1px solid var(--line);background:transparent;color:var(--fg-dim)}
+  .tabs2 button.on{background:var(--bg3);color:var(--fg);border-color:var(--accent-dim)}
+
+  figure{margin:14px 0}
+  .shot{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px}
+  figcaption{color:var(--fg-faint);font-size:12px;margin-top:9px;text-align:center}
+  .kbd{background:var(--bg3);border:1px solid var(--line);border-radius:5px;padding:1px 6px;
+       font-size:12px;color:var(--fg);white-space:nowrap}
+  .btnlike{background:var(--accent);color:#0d1017;border-radius:6px;padding:1px 7px;font-size:12px;
+       font-weight:600;white-space:nowrap}
+  .btnlike.g{background:transparent;border:1px solid var(--line);color:var(--fg-dim);font-weight:400}
+  .tip{background:#242a1c;border:1px solid #3d4a2a;color:#cfe0a8;border-radius:9px;
+       padding:11px 14px;font-size:13px;margin:12px 0;line-height:1.7}
+  .warnline{background:#33270f;border:1px solid #6b5320;color:#f2d99a;border-radius:9px;
+       padding:11px 14px;font-size:13px;margin:12px 0;line-height:1.7}
+  .updated{color:var(--fg-faint);font-size:12px;margin-top:44px;text-align:center}
+</style>
+</head>
+<body>
+<div class="guide">
+
+  <h1>🕵️ 포담 사용 가이드</h1>
+  <p class="lead">GM과 플레이어가 1:1로만 이야기하는 머더미스터리 진행 도구입니다.
+     플레이어끼리는 서로의 대화도, 받은 자료도 볼 수 없습니다.</p>
+
+  <div class="tabs2 hidden" id="tabs">
+    <button data-g="gm" class="on">🕵️ GM용</button>
+    <button data-g="player">🙋 플레이어용</button>
+  </div>
+
+  <!-- ══════════════════════ 플레이어 ══════════════════════ -->
+  <section id="gplayer">
+
+    <div class="sec">
+      <h2><span class="num">1</span>들어가기</h2>
+      <p>GM이 준 <b>링크</b>를 누르고 닉네임을 적으면 끝입니다. 설치할 것은 없습니다.
+         암호를 함께 받았다면 암호도 적습니다.</p>
+      <p>나갔다 들어와도, 새로고침해도 <b>대화는 그대로 남아 있습니다.</b></p>
+
+      <figure class="shot">
+        <svg viewBox="0 0 560 150" width="100%" role="img" aria-label="입장 화면">
+          <rect x="150" y="10" width="260" height="130" rx="10" fill="#1b1e24" stroke="#2f3540"/>
+          <text x="280" y="38" fill="#e8eaed" font-size="13" text-anchor="middle">광기의 산맥</text>
+          <rect x="170" y="52" width="220" height="24" rx="6" fill="#14161a" stroke="#2f3540"/>
+          <text x="180" y="68" fill="#6b7380" font-size="11">닉네임</text>
+          <rect x="170" y="82" width="220" height="24" rx="6" fill="#14161a" stroke="#2f3540"/>
+          <text x="180" y="98" fill="#6b7380" font-size="11">입장 암호 (있을 때만)</text>
+          <rect x="170" y="112" width="220" height="22" rx="6" fill="#6f8cff"/>
+          <text x="280" y="127" fill="#0d1017" font-size="11" font-weight="700" text-anchor="middle">입장하기</text>
+        </svg>
+        <figcaption>링크를 열면 나오는 입장 화면</figcaption>
+      </figure>
+    </div>
+
+    <div class="sec">
+      <h2><span class="num">2</span>화면 보는 법</h2>
+      <p>위쪽 탭 다섯 개가 전부입니다.</p>
+      <table>
+        <tr><th>💬 대화</th><td>GM과의 1:1 대화. 다른 플레이어는 이 내용을 볼 수 없습니다.</td></tr>
+        <tr><th>📁 받은 자료</th><td>GM이 보낸 파일만 모아 봅니다. 대화가 길어져도 핸드아웃을 다시 찾기 쉽습니다.</td></tr>
+        <tr><th>⭐ 즐겨찾기</th><td>말풍선의 <b>★</b>을 누른 것만 모아 봅니다. <b>나만 보입니다.</b></td></tr>
+        <tr><th>📝 메모</th><td>추리 메모. 내 브라우저에만 저장되고 <b>GM도 못 봅니다.</b></td></tr>
+        <tr><th>📥 내보내기</th><td>내 대화 전체를 파일 하나로 저장합니다.</td></tr>
+      </table>
+      <p>탭 오른쪽 위 <b>✕</b> 로 안 쓰는 탭을 접어 둘 수 있고, <b>＋</b> 로 다시 꺼냅니다.
+         탭은 <b>끌어서 자리를 바꿀</b> 수도 있습니다.</p>
+      <div class="tip">
+        <b>두 화면 같이 보기</b> — <b>탭을 화면 쪽으로 끌어다 놓으면</b> 그 자리에 나눠 붙습니다.
+        오른쪽에 놓으면 오른쪽, 아래에 놓으면 아래로 갑니다. 놓기 전에 <b>파란 자리</b>가 미리 보입니다.
+        탭 줄 맨 오른쪽 <b>▥</b> 를 눌러 목록에서 골라도 됩니다.
+        <b>대화를 보면서 받은 자료를 펼쳐 두는</b> 식입니다.
+        나뉜 화면에는 <b>왼쪽 위에 이름표</b>가 붙고, 그동안 그 탭은 탭 줄에서 잠시 빠집니다.
+        가운데 경계선을 끌어 넓이를 바꾸고, 이름표의 <b>✕</b> 를 누르면 탭이 제자리로 돌아옵니다.
+      </div>
+
+      <figure class="shot">
+        <svg viewBox="0 0 560 190" width="100%" role="img" aria-label="플레이어 대화 화면">
+          <rect x="10" y="10" width="540" height="170" rx="10" fill="#1b1e24" stroke="#2f3540"/>
+          <rect x="10" y="10" width="540" height="26" rx="10" fill="#232830"/>
+          <text x="24" y="28" fill="#e8eaed" font-size="11">💬 대화</text>
+          <text x="90" y="28" fill="#6b7380" font-size="11">📁 받은 자료</text>
+          <text x="180" y="28" fill="#6b7380" font-size="11">⭐ 즐겨찾기</text>
+          <text x="262" y="28" fill="#6b7380" font-size="11">📝 메모</text>
+          <text x="325" y="28" fill="#6b7380" font-size="11">📥 내보내기</text>
+          <rect x="26" y="52" width="240" height="34" rx="9" fill="#2a2f38"/>
+          <text x="38" y="66" fill="#98a0ad" font-size="10">GM</text>
+          <text x="38" y="80" fill="#e8eaed" font-size="11">당신은 저택에서 비명을 들었습니다.</text>
+          <rect x="300" y="96" width="228" height="30" rx="9" fill="#2b3a63"/>
+          <text x="312" y="115" fill="#e8eaed" font-size="11">서재로 가보겠습니다.</text>
+          <rect x="26" y="140" width="430" height="26" rx="7" fill="#14161a" stroke="#2f3540"/>
+          <text x="38" y="157" fill="#6b7380" font-size="11">GM에게 메시지 보내기 (Enter 전송)</text>
+          <rect x="466" y="140" width="62" height="26" rx="7" fill="#6f8cff"/>
+          <text x="497" y="157" fill="#0d1017" font-size="11" font-weight="700" text-anchor="middle">보내기</text>
+        </svg>
+        <figcaption>왼쪽이 GM, 오른쪽이 내가 보낸 말</figcaption>
+      </figure>
+    </div>
+
+    <div class="sec">
+      <h2><span class="num">3</span>보내기</h2>
+      <table>
+        <tr><th>글</th><td><span class="kbd">Enter</span> 전송 · <span class="kbd">Shift</span>+<span class="kbd">Enter</span> 줄바꿈</td></tr>
+        <tr><th>파일</th><td><span class="btnlike g">📎 파일 보내기</span> 를 누르거나, 대화창에 <b>끌어다 놓기</b></td></tr>
+        <tr><th>이미지</th><td><span class="kbd">Ctrl</span>+<span class="kbd">V</span> 로 붙여넣으면 바로 전송됩니다</td></tr>
+        <tr><th>취소</th><td>내가 보낸 말풍선의 <b>×</b> 로 지웁니다</td></tr>
+      </table>
+      <p>받은 이미지는 작게 보이고, <b>누르면 크게 열립니다</b> (<span class="kbd">Esc</span>로 닫기).</p>
+    </div>
+
+    <div class="sec">
+      <h2><span class="num">4</span>표시 · 질문지 · 타이머</h2>
+
+      <h3>✅ 표시 달기</h3>
+      <p>말풍선에 마우스를 올리면 <b>＋</b>가 나옵니다. ✅ ⭕ ❌ ❓ 를 붙일 수 있고, 다시 누르면 취소됩니다.
+         <b>GM도 같은 표시를 봅니다.</b> 확인했다는 뜻으로 쓰면 편합니다.</p>
+
+      <h3>❓ 질문지</h3>
+      <p>GM이 질문 카드를 보내면 <b>항목마다 따로</b> 답하고 제출합니다.
+         제출한 뒤에도 <span class="btnlike g">수정</span> 으로 고칠 수 있습니다.
+         <b>답은 GM에게만 갑니다.</b></p>
+
+      <h3>⏱ 타이머</h3>
+      <p>라운드 시간이 화면 위에 함께 흐릅니다. 30초가 남으면 노란색, 끝나면 소리가 납니다.</p>
+
+      <div class="tip">
+        <b>소리가 안 들리면</b> 화면을 한 번 클릭해 주세요. 브라우저는 클릭이 있어야 소리를 냅니다.
+        오른쪽 위에서 소리 종류와 크기(0~300%)를 바꿀 수 있습니다.
+      </div>
+
+      <div id="playerModuleGuides"></div>
+
+      <div class="warnline">
+        대화는 <b>GM과 나만</b> 봅니다. 다른 플레이어에게는 절대 보이지 않으니,
+        정보 공유는 진행 규칙에 따라 직접 말로 하세요.
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ GM ══════════════════════ -->
+  <section id="ggm" class="hidden">
+
+    <div class="toc">
+      <a href="#g1">① 방 만들기</a>
+      <a href="#g2">② 배역 설정</a>
+      <a href="#g3">③ 자료함</a>
+      <a href="#g4">④ 일괄 발송</a>
+      <a href="#g5">⑤ 대화</a>
+      <a href="#g6">⑥ 질문지</a>
+      <a href="#g7">⑦ 타이머</a>
+      <a href="#g8">⑧ GM끼리</a>
+      <a href="#g9">⑨ 룸 셋팅 재사용</a>
+      <a href="#g10">⑩ 난입 대응</a>
+      <a href="#g11">⑪ 마무리</a>
+      <a href="#gmods">🧩 모듈</a>
+    </div>
+
+    <div class="sec">
+      <h2>🚀 하루 흐름 한눈에</h2>
+      <div class="steps">
+        <div class="step"><span class="no">1</span><div>
+          <div class="t">세션 전 — 방을 만들고 준비</div>
+          <div class="d">방 만들기 → 배역 등록 → 배역별 자료함에 핸드아웃을 순서대로 넣어 둡니다.
+             <b>같은 시나리오를 또 돌린다면</b> 지난번 <b>룸 셋팅</b> 파일을 넣기만 하면 끝입니다(⑨).</div></div></div>
+        <div class="step"><span class="no">2</span><div>
+          <div class="t">시작 직전 — 링크 배포</div>
+          <div class="d">플레이어에게 <b>플레이어 링크 + 입장 암호</b>를 개인 메시지로 보냅니다.</div></div></div>
+        <div class="step"><span class="no">3</span><div>
+          <div class="t">입장 후 — 배역 배정</div>
+          <div class="d">들어온 사람에게 배역을 지정합니다. 이때부터 자료가 사람과 묶입니다.</div></div></div>
+        <div class="step"><span class="no">4</span><div>
+          <div class="t">진행 중 — 라운드마다 한 번</div>
+          <div class="d"><span class="btnlike">📤 배역별 다음 자료 일괄 발송</span> 한 번이면 각자에게 다음 자료가 갑니다.</div></div></div>
+        <div class="step"><span class="no">5</span><div>
+          <div class="t">끝난 뒤 — 기록 저장</div>
+          <div class="d"><span class="btnlike g">📥 기록 내보내기</span> 로 전체 대화를 파일 하나로 받습니다.
+            <b>주고받은 그림도 파일 안에 함께 담깁니다</b> — 따로 챙길 것이 없습니다.</div></div></div>
+      </div>
+    </div>
+
+    <div class="sec" id="g1">
+      <h2><span class="num">1</span>방 만들기와 링크</h2>
+      <p>첫 화면에서 세션 이름, 내 GM 닉네임, 두 가지 암호를 정하고 <b>방 만들기</b>를 누릅니다.
+         (서버에 암호가 걸려 있으면 <b>서버 암호</b>도 함께 넣습니다 — 방을 만드는 사람만 아는 값입니다.)</p>
+      <table>
+        <tr><th>플레이어 입장 암호</th><td>플레이어가 링크로 들어올 때 입력합니다. 링크가 새어도 이게 있으면 막힙니다.</td></tr>
+        <tr><th>GM 암호</th><td><b>서브 GM</b>이 GM으로 들어올 때 입력합니다.</td></tr>
+      </table>
+      <p>방을 만들면 링크 두 개가 나옵니다.</p>
+      <table>
+        <tr><th>🔗 플레이어 링크</th><td>플레이어 전원에게. 입장 암호와 함께 알려줍니다.</td></tr>
+        <tr><th>🔑 GM 링크</th><td><b>서브 GM에게만.</b> GM 암호와 함께 주면 자기 닉네임으로 들어옵니다.</td></tr>
+      </table>
+      <div class="warnline">
+        <b>링크는 화면 공유·방송에 노출되지 않게</b> 개인 메시지로 보내세요.
+        GM 대시보드에서는 암호가 <b>••••</b> 로 가려져 있고, 눈 아이콘을 눌러야 보입니다.
+      </div>
+      <p>세션 중에 링크가 다시 필요하면 왼쪽 위의 <b>🔗 플레이어 링크 복사</b>, <b>GM 링크</b>를 쓰면 됩니다.</p>
+    </div>
+
+    <div class="sec" id="g2">
+      <h2><span class="num">2</span>배역 설정하기</h2>
+      <p>배역은 <b>자료와 사람을 묶어 주는 이름표</b>입니다. 배역을 만들어 두면 자료를 엉뚱한 사람에게 보낼 일이 없어집니다.</p>
+
+      <div class="steps">
+        <div class="step"><span class="no">1</span><div>
+          <div class="t">배역 만들기</div>
+          <div class="d">오른쪽 <b>📁 자료함</b> 패널 위의 <span class="btnlike g">⚙</span> 를 누르면 입력칸이 열립니다.
+             <b>한 줄에 하나씩</b> 적고 <span class="btnlike">추가</span> — 집사 / 의사 / 조카 …</div></div></div>
+        <div class="step"><span class="no">2</span><div>
+          <div class="t">배역별 자료함에 자료 넣기</div>
+          <div class="d">위의 드롭다운에서 배역을 고른 뒤, 그 배역에게 줄 파일을 끌어다 놓습니다.
+             배역마다 자기 자료함을 따로 가집니다.</div></div></div>
+        <div class="step"><span class="no">3</span><div>
+          <div class="t">사람에게 배역 배정 (당일)</div>
+          <div class="d">플레이어가 입장하면 왼쪽 목록의 이름 옆 <b>드롭다운</b>에서 배역을 고릅니다.
+             한 배역은 한 사람에게만 붙고, 다른 사람에게 주면 자동으로 옮겨집니다.</div></div></div>
+        <div class="step"><span class="no">4</span><div>
+          <div class="t">끝</div>
+          <div class="d">이제 그 사람을 클릭하면 <b>오른쪽 자료함도 그 배역으로 따라 이동</b>합니다.
+             발송 버튼에는 받을 사람 이름이 그대로 적힙니다.</div></div></div>
+      </div>
+
+      <figure class="shot">
+        <svg viewBox="0 0 560 150" width="100%" role="img" aria-label="배역 · 사람 · 자료 연결">
+          <rect x="20" y="30" width="140" height="92" rx="10" fill="#1b1e24" stroke="#2f3540"/>
+          <text x="90" y="24" fill="#98a0ad" font-size="11" text-anchor="middle">사람</text>
+          <rect x="32" y="44" width="116" height="22" rx="6" fill="#232830"/>
+          <text x="42" y="59" fill="#e8eaed" font-size="11">토끼</text>
+          <rect x="32" y="74" width="116" height="22" rx="6" fill="#232830"/>
+          <text x="42" y="89" fill="#e8eaed" font-size="11">사냥꾼</text>
+
+          <rect x="210" y="30" width="140" height="92" rx="10" fill="#1b1e24" stroke="#3d4f8f"/>
+          <text x="280" y="24" fill="#98a0ad" font-size="11" text-anchor="middle">배역</text>
+          <rect x="222" y="44" width="116" height="22" rx="6" fill="#3d4f8f"/>
+          <text x="232" y="59" fill="#dbe3ff" font-size="11">집사</text>
+          <rect x="222" y="74" width="116" height="22" rx="6" fill="#3d4f8f"/>
+          <text x="232" y="89" fill="#dbe3ff" font-size="11">의사</text>
+
+          <rect x="400" y="30" width="140" height="92" rx="10" fill="#1b1e24" stroke="#2f3540"/>
+          <text x="470" y="24" fill="#98a0ad" font-size="11" text-anchor="middle">자료함</text>
+          <rect x="412" y="44" width="116" height="22" rx="6" fill="#232830"/>
+          <text x="420" y="59" fill="#e8eaed" font-size="10">📄 집사_1라운드</text>
+          <rect x="412" y="74" width="116" height="22" rx="6" fill="#232830"/>
+          <text x="420" y="89" fill="#e8eaed" font-size="10">📄 집사_2라운드</text>
+
+          <path d="M160 55 L210 55" stroke="#6f8cff" stroke-width="2" marker-end="url(#a)"/>
+          <path d="M350 55 L400 55" stroke="#6f8cff" stroke-width="2" marker-end="url(#a)"/>
+          <defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0 0 L8 4 L0 8 z" fill="#6f8cff"/></marker></defs>
+          <text x="185" y="48" fill="#6b7380" font-size="9" text-anchor="middle">배정</text>
+          <text x="375" y="48" fill="#6b7380" font-size="9" text-anchor="middle">태그</text>
+        </svg>
+        <figcaption>사람 ← 배역 → 자료. 가운데 배역만 이어주면 나머지는 자동입니다</figcaption>
+      </figure>
+
+      <table>
+        <tr><th>이름 바꾸기 · 삭제</th><td>⚙ 안의 배역 목록에서 합니다. <b>배역을 지워도 자료와 대화는 남습니다</b>(자료는 공용으로 내려옴).</td></tr>
+        <tr><th>배역 없는 플레이어</th><td>그대로 대화는 됩니다. 배역 자료만 못 받습니다.</td></tr>
+        <tr><th>담당자 없는 배역</th><td>발송 버튼이 <span class="btnlike g">배역 미배정</span> 으로 비활성화됩니다.</td></tr>
+      </table>
+    </div>
+
+    <div class="sec" id="g3">
+      <h2><span class="num">3</span>자료함 다루기</h2>
+      <p>드롭다운으로 <b>공용 자료함</b>과 <b>각 배역 자료함</b>을 오갑니다.
+         공용은 지도·규칙서처럼 누구에게나 주는 것, 배역 자료함은 그 배역 전용입니다.</p>
+
+      <h3>넣기</h3>
+      <p>지금 보고 있는 자료함에 파일을 <b>끌어다 놓거나</b> 점선 상자를 클릭해 고릅니다.
+         가장 최근에 넣은 파일이 <b>맨 아래</b>로 갑니다.</p>
+
+      <h3>순서 = 발송 순서</h3>
+      <p>목록은 <b>⠿ 손잡이로 끌어</b> 순서를 바꿉니다. 일괄 발송은 <b>위에서 아래 순서 그대로</b> 나갑니다.
+         다음에 나갈 자료에는 <b>「다음 발송」</b> 표가 붙습니다.</p>
+
+      <h3>자료 하나하나의 버튼</h3>
+      <table>
+        <tr><th>공용 자료</th><td>
+          <span class="btnlike">📢 전체 발송</span> 모든 플레이어에게 ·
+          <span class="btnlike g">선택한 사람</span> 왼쪽에서 체크한 사람에게만</td></tr>
+        <tr><th>배역 자료</th><td>
+          <span class="btnlike">○○에게 발송</span> 그 배역 담당자에게 ·
+          <span class="btnlike g">📢 전체</span> 모든 플레이어에게</td></tr>
+        <tr><th>이동 드롭다운</th><td>이 자료를 다른 배역(또는 공용)으로 옮깁니다</td></tr>
+        <tr><th>삭제</th><td>자료함에서 뺍니다. <b>이미 보낸 자료는 대화에 그대로 남습니다.</b></td></tr>
+      </table>
+
+      <h3>한꺼번에</h3>
+      <table>
+        <tr><th>📢 이 자료함 모두 발송</th><td>지금 보는 자료함의 파일을 <b>순서대로 전부</b> 보냅니다.
+          공용이면 전원에게, 배역이면 그 담당자에게 갑니다.</td></tr>
+        <tr><th>🗑 비우기</th><td>지금 보는 자료함만 비웁니다</td></tr>
+        <tr><th>🗑 전부 비우기</th><td>모든 배역 + 공용 자료함을 비웁니다</td></tr>
+      </table>
+
+      <div class="tip">
+        <b>배역에 태그된 자료는 그 배역을 맡은 사람에게만 갑니다.</b>
+        지금 누구와 대화 중이든, 누구를 체크해 뒀든 상관없이 버튼에 적힌 그 사람에게 갑니다.
+        오발송을 막기 위해 일부러 이렇게 만들었습니다.
+      </div>
+    </div>
+
+    <div class="sec" id="g4">
+      <h2><span class="num">4</span>배역별 다음 자료 일괄 발송</h2>
+      <p>라운드 진행의 핵심 버튼입니다. 누르면 <b>배역마다 「아직 안 보낸 자료 중 가장 위에 있는 것 하나」</b>를
+         그 배역 담당자에게 보냅니다. 라운드마다 이 버튼만 누르면 됩니다.</p>
+
+      <figure class="shot">
+        <svg viewBox="0 0 560 200" width="100%" role="img" aria-label="일괄 발송 동작">
+          <text x="20" y="20" fill="#98a0ad" font-size="11">집사 자료함</text>
+          <rect x="20" y="28" width="150" height="24" rx="6" fill="#232830" opacity=".45"/>
+          <text x="30" y="44" fill="#6b7380" font-size="10">1라운드 ✓ 보냄</text>
+          <rect x="20" y="56" width="150" height="24" rx="6" fill="#3d4f8f"/>
+          <text x="30" y="72" fill="#dbe3ff" font-size="10">2라운드 ← 다음 발송</text>
+          <rect x="20" y="84" width="150" height="24" rx="6" fill="#232830"/>
+          <text x="30" y="100" fill="#98a0ad" font-size="10">3라운드</text>
+
+          <text x="20" y="134" fill="#98a0ad" font-size="11">의사 자료함</text>
+          <rect x="20" y="142" width="150" height="24" rx="6" fill="#3d4f8f"/>
+          <text x="30" y="158" fill="#dbe3ff" font-size="10">1라운드 ← 다음 발송</text>
+          <rect x="20" y="170" width="150" height="24" rx="6" fill="#232830"/>
+          <text x="30" y="186" fill="#98a0ad" font-size="10">2라운드</text>
+
+          <rect x="215" y="76" width="130" height="34" rx="8" fill="#6f8cff"/>
+          <text x="280" y="98" fill="#0d1017" font-size="11" font-weight="700" text-anchor="middle">📤 일괄 발송</text>
+
+          <path d="M175 68 L215 88" stroke="#6f8cff" stroke-width="2" marker-end="url(#b)"/>
+          <path d="M175 154 L215 100" stroke="#6f8cff" stroke-width="2" marker-end="url(#b)"/>
+          <path d="M345 86 L395 60" stroke="#4ec98a" stroke-width="2" marker-end="url(#c)"/>
+          <path d="M345 100 L395 140" stroke="#4ec98a" stroke-width="2" marker-end="url(#c)"/>
+          <defs>
+            <marker id="b" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+              <path d="M0 0 L8 4 L0 8 z" fill="#6f8cff"/></marker>
+            <marker id="c" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+              <path d="M0 0 L8 4 L0 8 z" fill="#4ec98a"/></marker>
+          </defs>
+
+          <rect x="400" y="42" width="140" height="34" rx="8" fill="#1b1e24" stroke="#2f3540"/>
+          <text x="412" y="63" fill="#e8eaed" font-size="10">토끼 (집사) ← 2라운드</text>
+          <rect x="400" y="124" width="140" height="34" rx="8" fill="#1b1e24" stroke="#2f3540"/>
+          <text x="412" y="145" fill="#e8eaed" font-size="10">사냥꾼 (의사) ← 1라운드</text>
+        </svg>
+        <figcaption>배역마다 각자의 다음 자료가 담당자에게 하나씩</figcaption>
+      </figure>
+
+      <ul>
+        <li>누르기 전에 <b>무엇이 누구에게 갈지 먼저 보여주고</b> 확인을 받습니다.</li>
+        <li><b>이미 보낸 자료는 건너뜁니다.</b> 두 번 눌러도 같은 자료가 또 가지 않습니다.</li>
+        <li>배역을 맡은 사람이 없거나 보낼 자료가 다 떨어진 배역은 <b>조용히 넘어갑니다.</b></li>
+        <li>지운 자료는 「안 보낸 것」으로 되돌아와 다시 대상이 됩니다.</li>
+      </ul>
+    </div>
+
+    <div class="sec" id="g5">
+      <h2><span class="num">5</span>대화하기</h2>
+      <table>
+        <tr><th>1:1</th><td>왼쪽에서 플레이어를 <b>클릭</b>하면 그 사람 대화가 열리고, 받는 사람도 그 한 명으로 맞춰집니다.</td></tr>
+        <tr><th>여러 명</th><td><b>체크박스</b>로 골라 같은 내용을 한 번에. 2명 이상이면 확인 창이 뜨고 「전체 공지」 표가 붙습니다.</td></tr>
+        <tr><th>파일</th><td>첨부 버튼 · 대화창에 끌어다 놓기 · <span class="kbd">Ctrl</span>+<span class="kbd">V</span> 붙여넣기</td></tr>
+        <tr><th>NPC</th><td>입력창 옆에 이름을 적으면 그 이름으로 나갑니다. <b>GM 화면에는 실제 보낸 사람도 함께</b> 보입니다.</td></tr>
+        <tr><th>삭제</th><td>내가 보낸 말풍선의 <b>×</b>. 여러 명에게 보낸 공지는 <b>한 번에 모두</b> 지워집니다.</td></tr>
+        <tr><th>표시</th><td>말풍선에 마우스를 올려 <b>＋</b> → ✅ ⭕ ❌ ❓. 플레이어도 같은 표시를 봅니다.</td></tr>
+        <tr><th>즐겨찾기</th><td><b>★</b> 는 나만 봅니다. 오른쪽 탭에서 모아 보고 「대화로 가기」로 이동합니다.</td></tr>
+      </table>
+      <p>왼쪽·오른쪽 패널은 경계선을 끌어 <b>폭을 조절</b>하거나 ◀ ▶ 로 접을 수 있습니다.</p>
+      <p>오른쪽 탭은 <b>✕</b> 로 접어 두고 <b>＋</b> 로 다시 꺼냅니다. 끌어서 자리도 바꿉니다.
+         <b>탭을 아래 화면 쪽으로 끌어다 놓으면</b> 둘로 나뉘어 <b>같이</b> 보입니다 —
+         자료함을 보면서 질문지 답을 지켜보는 식입니다. 놓을 자리는 파랗게 미리 보입니다.
+         나뉜 화면 <b>왼쪽 위에 이름표</b>가 붙고 그동안 그 탭은 탭 줄에서 빠집니다 —
+         이름표의 <b>✕</b> 를 누르면 제자리로 돌아옵니다.
+         끌기가 번거로우면 맨 오른쪽 <b>▥</b> 에서 골라도 되고, 같은 메뉴에서 <b>좌우 / 위아래</b>를 바꿉니다.</p>
+
+      <div class="tip">
+        <b>GM 대화를 보고 있으면 입력창이 노란색</b>으로 바뀝니다. 플레이어에게 가지 않는다는 표시입니다.
+        쓰다 만 글은 <b>대화마다 따로 남아 있어서</b>, 대화를 옮겨 다녀도 엉뚱한 곳으로 나가지 않습니다.
+      </div>
+    </div>
+
+    <div class="sec" id="g6">
+      <h2><span class="num">6</span>질문지 (비밀 제출함)</h2>
+      <p>오른쪽 <b>❓ 질문지</b> 탭에서 미리 만들어 두고, 세션 중에는 <span class="btnlike">보내기</span> 만 누릅니다.
+         급할 때는 대화창에 직접 칠 수도 있습니다.</p>
+      <table>
+        <tr><th>보내기</th><td>첫 줄이 제목, 다음 줄부터 세부 질문<br>
+          <code>/질문 최종 지목</code> → <code>범인은 누구인가?</code> → <code>그 근거는?</code></td></tr>
+        <tr><th>답 받기</th><td>플레이어는 <b>항목마다 따로</b> 답합니다. 제출 후 <b>수정</b>도 됩니다(수정 전 답은 취소선으로 남습니다).</td></tr>
+        <tr><th>보기</th><td>GM 카드에 <b>사람별로 1·2·3번이 묶여</b> 실시간으로 쌓입니다. 새 답이 오면 알림음이 울립니다.</td></tr>
+        <tr><th>📋 정리해서 GM방에 올리기</th><td>사람별·항목별로 정리한 글을 <b>GM 전체방에만</b> 올립니다. 플레이어에게는 가지 않습니다.</td></tr>
+        <tr><th>마감 / 질문 삭제</th><td>마감하면 더 못 냅니다(다시 열기 가능). 삭제하면 <b>받은 사람 모두에게서</b> 사라집니다.</td></tr>
+      </table>
+    </div>
+
+    <div class="sec" id="g7">
+      <h2><span class="num">7</span>라운드 타이머</h2>
+      <p>화면 위 바에서 시간을 적고 <span class="btnlike">시작</span>. <code>10</code> 은 10분, <code>1:30</code> 은 1분 30초입니다.</p>
+      <ul>
+        <li>남은 시간은 <b>모든 플레이어 화면에 함께</b> 흐릅니다.</li>
+        <li>새 시간을 적고 시작하면 그 시간으로 다시, 비우고 시작하면 <b>멈춘 지점부터</b> 이어집니다.</li>
+        <li>끝나는 소리는 <b>GM이 고르고</b>, 소리 크기는 각자 자기 설정을 따릅니다.</li>
+        <li>「라운드 이름」을 적으면 시간 옆에 함께 보입니다.</li>
+      </ul>
+    </div>
+
+    <div class="sec" id="g8">
+      <h2><span class="num">8</span>GM이 여러 명일 때</h2>
+      <p>GM 링크와 GM 암호를 받은 <b>서브 GM</b>은 자기 닉네임으로 들어옵니다. 링크만으로는 못 들어옵니다.</p>
+      <ul>
+        <li>모든 GM이 <b>모든 플레이어 스레드를 함께</b> 봅니다. 누가 답해도 됩니다.</li>
+        <li>말풍선마다 <b>보낸 GM 이름</b>이 붙습니다.</li>
+        <li>왼쪽 GM 목록의 <b>GM 전체방</b>과 <b>GM 1:1</b>은 노란 말풍선이고,
+            <b>플레이어에게 절대 보이지 않습니다.</b> 파일·이미지도 보낼 수 있습니다.</li>
+        <li>GM끼리는 <b>플레이어에게 보낸</b> 메시지를 서로 지울 수 있습니다 (수습이 급할 때가 있어서).
+            다만 <b>GM 전체방·GM 1:1에 쓴 글은 자기 것만</b> 지웁니다 — 말풍선의 <b>×</b>.</li>
+        <li>이름 옆 <b>색 네모</b>로 <b>내 이름 색</b>을 고릅니다. GM 목록·말풍선·공용 대화에서
+            <b>모두가 같은 색</b>으로 봅니다 — 여럿이 진행할 때 누가 한 말인지 한눈에 들어옵니다.
+            <b>✕</b> 를 누르면 색을 없앱니다. (플레이어도 자기 화면에서 같은 방법으로 고릅니다.)</li>
+      </ul>
+    </div>
+
+    <div class="sec" id="g9">
+      <h2><span class="num">9</span>룸 셋팅 — 다음 회차에 그대로 쓰기</h2>
+      <p>같은 시나리오를 여러 번 진행한다면, 준비물을 <b>파일 하나로 저장</b>해 두고 다음 방에서 되살립니다.
+         배역을 다시 만들고 자료를 다시 올릴 필요가 없습니다.</p>
+
+      <div class="steps">
+        <div class="step"><span class="no">1</span><div>
+          <div class="t">저장</div>
+          <div class="d">준비가 끝난 방에서 왼쪽 아래 <span class="btnlike g">📦 룸 셋팅 저장</span>.
+             <b>배역 · 자료 · 자료 순서 · 질문지</b>가 zip 파일 하나로 내려받아집니다.</div></div></div>
+        <div class="step"><span class="no">2</span><div>
+          <div class="t">다음 회차에 불러오기</div>
+          <div class="d">새 방을 만들 때 첫 화면의 <b>「룸 셋팅 파일」</b> 칸에 그 파일을 고르면 바로 들어갑니다.
+             이미 만든 방이라면 자료함 아래 <span class="btnlike g">📦 룸 셋팅 불러오기</span>.</div></div></div>
+      </div>
+
+      <table>
+        <tr><th>담기는 것</th><td>배역 · 자료함 파일(원본 그대로) · 자료 순서 · 질문지 템플릿</td></tr>
+        <tr><th>담기지 않는 것</th><td><b>대화 · 플레이어 · 암호 · 제출된 답</b> — 지난 회차 내용이 섞이지 않습니다</td></tr>
+        <tr><th>이미 자료가 있을 때</th><td>불러오면 <b>「싹 바꾸기」와 「더하기」</b> 중에 고를 수 있습니다</td></tr>
+      </table>
+
+      <p>저장된 파일은 보통 zip이라 <b>탐색기에서 그냥 열어 확인</b>할 수 있고, 다른 사람에게 그대로 건네도 됩니다.</p>
+    </div>
+
+    <div class="sec" id="g10">
+      <h2><span class="num">10</span>모르는 사람이 들어왔을 때</h2>
+      <p>링크가 새거나 화면에 주소가 잠깐 비쳐서 낯선 사람이 들어올 수 있습니다. 두 가지로 정리합니다.</p>
+
+      <table>
+        <tr><th>🔓 입장 열림 / 🔒 입장 잠김</th><td>
+          왼쪽 아래 버튼입니다. 잠그면 <b>새로 들어오는 것만</b> 막힙니다.
+          <b>이미 들어와 있는 플레이어는 아무 영향이 없습니다.</b> 인원이 다 모이면 한 번 눌러 두면 편합니다.</td></tr>
+        <tr><th>플레이어 목록의 ⨯</th><td>
+          그 사람만 <b>내보냅니다.</b> 이름 위에 마우스를 올려야 희미하게 보이고, 확인 창도 한 번 뜹니다
+          (실수로 눌리지 않게 일부러 눈에 안 띄게 뒀습니다).</td></tr>
+      </table>
+
+      <ul>
+        <li>내보내진 사람은 화면에 아무 안내 없이 <b>설정한 주소(기본: 첫 화면)로 이동</b>합니다. 🎈</li>
+        <li>그 사람의 링크는 바로 무효가 되고, <b>전체 공지·일괄 발송 대상에서도 빠집니다.</b></li>
+        <li>대화 기록은 남습니다 — 「기록 내보내기」에는 그대로 나옵니다.</li>
+        <li>실수로 내보냈다면 입장을 열고 <b>같은 닉네임으로 다시</b> 들어오면 됩니다
+            (새로 입장하는 것이라 이전 대화는 그 사람 화면에 보이지 않습니다).</li>
+      </ul>
+
+      <div class="tip">
+        확실히 정리하려면 <b>내보내기 + 입장 잠금</b>을 같이 쓰세요. 내보내기만 하면 링크를 아는 사람은 다시 들어올 수 있습니다.
+      </div>
+    </div>
+
+    <div class="sec" id="g11">
+      <h2><span class="num">11</span>마무리</h2>
+      <table>
+        <tr><th>📥 기록 내보내기</th><td>모든 플레이어 대화 + GM 전체방을 파일 하나로.
+          <b>대화에 오간 그림은 그 안에 그대로 박혀</b> 나중에 열어도 보입니다
+          <span class="faint">(아주 큰 그림은 빠지고, 몇 장이 담겼는지 맨 위에 적힙니다)</span></td></tr>
+        <tr><th>📥 GM 대화</th><td>GM끼리의 대화만. 전체방과 <b>내가 낀 1:1</b>만 담깁니다</td></tr>
+        <tr><th>방 닫기</th><td>플레이어의 입장·발송만 멈춥니다. <b>GM은 계속 쓸 수 있고 언제든 다시 엽니다.</b></td></tr>
+        <tr><th>방 삭제</th><td>대화와 자료가 모두 사라집니다. <b>되돌릴 수 없습니다.</b> 확인을 위해 세션 이름을 입력해야 합니다.</td></tr>
+      </table>
+      <p>보관 기간이 지나면 새 플레이어는 들어올 수 없고, 그 뒤 일정 기간이 더 지나면 방이 자동으로 지워집니다.
+         기록이 필요하면 <b>세션이 끝난 날 바로 내보내 두세요.</b></p>
+    </div>
+    <div class="sec" id="gmods">
+      <h2>🧩 모듈</h2>
+      <p>시나리오마다 쓰기도 하고 안 쓰기도 하는 기능은 <b>모듈</b>로 따로 있습니다.
+         방을 만들 때 <b>「쓸 기능 고르기」</b>에서 체크하거나, 대시보드 왼쪽 아래 <b>🧩 모듈</b> 버튼으로 켜고 끕니다.
+         켠 방에서만 화면과 기능이 살아나고, 설정은 <b>룸 셋팅에 함께 담겨</b> 다음 회차로 넘어갑니다.</p>
+      <div id="gmModuleGuides"><p class="faint">불러오는 중…</p></div>
+    </div>
+  </section>
+
+  <p class="updated">마지막 갱신 2026-09-17</p>
+</div>
+
+<script>
+// ── 모듈 가이드 ─────────────────────────────────────────────────────────────
+// 모듈이 자기 사용법을 들고 있다. 모듈이 늘어나면 이 화면도 저절로 늘어난다.
+(async function moduleGuides() {
+  let guides = [];
+  try {
+    guides = (await (await fetch('/api/modules/guides')).json()).guides || [];
+  } catch { return; }
+
+  // GM 쪽 — 이 서버에 있는 모듈을 모두 보여준다.
+  const gmBox = document.getElementById('gmModuleGuides');
+  if (gmBox) {
+    const withGm = guides.filter((g) => g.gm);
+    gmBox.innerHTML = withGm.length === 0
+      ? '<p class="faint">아직 모듈이 없습니다.</p>'
+      : withGm.map((g) => `<h3 style="margin-top:20px">${g.name}</h3>${g.gm}`).join('');
+  }
+
+  // 플레이어 쪽 — 지금 들어와 있는 방에서 켜진 모듈만 (방 밖에서는 아무것도 안 보인다).
+  const plBox = document.getElementById('playerModuleGuides');
+  if (!plBox) return;
+  const code = new URLSearchParams(location.search).get('room');
+  if (!code) return;
+  let on = [];
+  try {
+    const token = localStorage.getItem(`mm.player.${code.toUpperCase()}`);
+    if (!token) return;
+    const me = await (await fetch('/api/me', { headers: { 'x-player-token': token } })).json();
+    on = me.modules || [];
+  } catch { return; }
+
+  const mine = guides.filter((g) => g.player && on.includes(g.id));
+  if (mine.length === 0) return;
+  plBox.innerHTML = mine.map((g) => `
+    <div class="sec" style="margin:14px 0 0">
+      <h2><span class="num">＋</span>${g.name}</h2>
+      ${g.player}
+    </div>`).join('');
+})();
+
+const isGm = location.hash === '#gm';
+// 플레이어에게는 GM 안내를 보여주지 않는다 (탭 자체가 나오지 않는다).
+if (isGm) {
+  document.getElementById('tabs').classList.remove('hidden');
+  document.getElementById('ggm').classList.remove('hidden');
+  document.getElementById('gplayer').classList.add('hidden');
+}
+document.querySelectorAll('.tabs2 button').forEach((b) => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.tabs2 button').forEach((x) => x.classList.toggle('on', x === b));
+    const gm = b.dataset.g === 'gm';
+    document.getElementById('ggm').classList.toggle('hidden', !gm);
+    document.getElementById('gplayer').classList.toggle('hidden', gm);
+  });
+});
+</script>
+</body>
+</html>
