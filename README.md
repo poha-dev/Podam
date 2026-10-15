@@ -99,7 +99,7 @@ GM 용과 플레이어 용이 따로 있고, 플레이어에게는 **그 방에�
 
 ### 공식 모듈
 
-따로 나눠 줍니다 → **[Podam-module](https://github.com/poha-dev/Podam-module)**
+따로 나눠 줍니다 → **[Podam-modules](https://github.com/poha-dev/Podam-modules)**
 
 | 모듈 | 무엇 |
 |---|---|
