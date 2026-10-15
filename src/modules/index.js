@@ -1,7 +1,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const { CORE_DIR, modulesDir } = require('../paths');
+const { CORE_DIR, modulesDirs } = require('../paths');
 
 /**
  * 모듈 목록.
@@ -98,36 +98,17 @@ function check(m, where, seen) {
 
 const HOME = new Map();      // id -> 그 모듈이 사는 폴더
 
-/**
- * 맨 처음 켤 때 — 배포판에 동봉한 공식 모듈을 모듈 폴더로 옮겨 둔다.
- * 받자마자 아무 기능도 없으면 당황스러우니까. 한 번만 하고, 이후는 사용자 것이다.
- */
-function copyStarter(dir) {
-  const from = path.join(CORE_DIR, '..', 'modules-starter');
-  try {
-    if (fs.existsSync(dir) || !fs.existsSync(from)) return;
-    fs.cpSync(from, dir, { recursive: true });
-    console.log(`처음 켜셔서 공식 모듈을 넣어 두었습니다 — ${dir}`);
-  } catch (e) {
-    console.warn(`[모듈] 기본 모듈을 넣지 못했습니다 — ${e.message}`);
-  }
-}
-
-function load() {
-  const dir = modulesDir();
-  copyStarter(dir);
+/** 폴더 하나를 훑는다. */
+function loadFrom(dir, seen, out) {
   let names;
   try {
     names = fs.readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
   } catch {
-    console.log(`모듈 없음 — 넣을 곳: ${dir}`);
-    return [];
+    return;                                   // 그런 폴더가 없다 — 흔한 일이다
   }
 
   linkCore(dir);
 
-  const out = [];
-  const seen = new Set();
   for (const name of names.sort()) {
     // `.` 이나 `_` 로 시작하면 건너뛴다 — 지우지 않고 잠깐 꺼 두는 방법이다.
     if (name.startsWith('.') || name.startsWith('_') || name === 'node_modules') continue;
@@ -135,7 +116,7 @@ function load() {
     if (!fs.existsSync(path.join(home, 'index.js'))) continue;    // 모듈이 아닌 폴더
 
     const m = require(home);
-    check(m, name, seen);
+    check(m, home, seen);
     if (m.api !== undefined && Number(m.api) !== MODULE_API) {
       console.warn(`[모듈] ${m.id} 는 이 판과 맞지 않아 싣지 않았습니다 (모듈 ${m.api} · 코어 ${MODULE_API})`);
       continue;
@@ -144,14 +125,30 @@ function load() {
     HOME.set(m.id, home);
     out.push(m);
   }
+}
 
-  const label = (m) => {
-    const folder = path.basename(HOME.get(m.id));
-    return folder === m.id ? m.id : `${m.id}(${folder})`;
-  };
-  console.log(out.length
-    ? `모듈 ${out.length}개: ${out.map(label).join(', ')}  (${dir})`
-    : `모듈 없음 — 넣을 곳: ${dir}`);
+function load() {
+  const dirs = modulesDirs();
+  const out = [];
+  const seen = new Set();
+  for (const dir of dirs) loadFrom(dir, seen, out);
+
+  if (out.length) {
+    const label = (m) => {
+      const folder = path.basename(HOME.get(m.id));
+      return folder === m.id ? m.id : `${m.id}(${folder})`;
+    };
+    console.log(`모듈 ${out.length}개: ${out.map(label).join(', ')}`);
+    // 어느 폴더에서 왔는지도 한 줄씩 — 같은 이름이 여러 곳에 있을 때 헷갈리지 않게
+    const byDir = new Map();
+    for (const m of out) {
+      const dir = path.dirname(HOME.get(m.id));
+      byDir.set(dir, (byDir.get(dir) || []).concat(m.id));
+    }
+    for (const [dir, ids] of byDir) console.log(`   ${dir}  (${ids.join(', ')})`);
+  } else {
+    console.log(`모듈 없음 — 넣을 곳: ${dirs[0]}`);
+  }
   return out;
 }
 

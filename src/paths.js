@@ -32,6 +32,18 @@ function portableAt() {
 
 const isPortable = () => !!portableAt();
 
+/**
+ * 사람이 **보는** 폴더. 배포판에서는 프로그램이 `app/` 안에 들어 있으므로,
+ * 바깥(= `포담 시작.cmd` 와 `runtime` 이 있는 곳)이 사람이 여는 자리다.
+ * 소스로 쓸 때는 그냥 프로젝트 폴더다.
+ */
+function visibleRoot() {
+  const up = path.join(APP_DIR, '..');
+  const looksLikeRelease = fs.existsSync(path.join(up, 'runtime'))
+    || fs.readdirSync(up).some((f) => f.endsWith('.cmd'));
+  return looksLikeRelease ? path.resolve(up) : APP_DIR;
+}
+
 /** 운영체제가 「프로그램이 자기 데이터를 두는 곳」이라고 정해 둔 자리. */
 function userDir() {
   const home = os.homedir();
@@ -45,23 +57,43 @@ function userDir() {
 /**
  * 방·대화·올린 파일이 사는 곳. 앞의 것이 이긴다.
  *
- *   1. `DATA_DIR`     — 직접 정한 사람 (도커·NAS·고급)
- *   2. 들고 다니는 판  — 앱 폴더 안의 `data`
- *   3. **앱 폴더에 이미 데이터가 있으면 그것** — 쓰던 사람이 기록을 잃지 않게
- *   4. 그 밖에는 운영체제가 정한 사용자 폴더
+ *   1. `DATA_DIR`                  — 직접 정한 사람 (도커·서버·고급)
+ *   2. `portable.txt` 를 둔 자리
+ *   3. **프로그램 옆에 쓰던 기록이 있으면 그것**
+ *   4. **사용자 폴더에 쓰던 기록이 있으면 그것** — 옛 판을 쓰던 사람이 잃지 않게
+ *   5. 새로 시작하면 **프로그램 옆**. 거기에 쓸 수 없으면(예: `Program Files`) 사용자 폴더
  *
- * 4번이 기본인 이유: 프로그램을 `Program Files` 같은 **쓸 수 없는 곳**에 두어도 돌아야 하고,
- * 새 판을 받아 다른 폴더에 풀어도 지난 방이 그대로 보여야 하기 때문이다.
+ * 프로그램 옆이 기본인 이유: 압축을 풀어 쓰는 프로그램이라 **눈에 보이는 곳**에 있어야
+ * 옮기고 지우고 들고 다니기가 쉽다. 숨은 폴더에 몰래 쌓이면 찾지도 못한다.
+ * 대신 새 판을 다른 폴더에 풀면 지난 기록이 따라오지 않으므로, `data` 폴더를 옮겨 주면 된다.
  */
 function dataDir() {
   if (process.env.DATA_DIR) return path.resolve(process.env.DATA_DIR);
-  const here = portableAt();
-  if (here) return path.join(here, 'data');       // 표시해 둔 자리 옆에 쌓는다
-  const beside = path.join(APP_DIR, 'data');
-  if (fs.existsSync(path.join(beside, 'podam.sqlite')) || fs.existsSync(path.join(beside, 'mm.sqlite'))) {
-    return beside;
+
+  const marked = portableAt();
+  if (marked) return path.join(marked, 'data');            // 직접 표시해 둔 자리
+
+  const beside = path.join(visibleRoot(), 'data');
+  if (hasRecords(beside)) return beside;                   // 여기서 쓰던 기록이 있다
+  if (hasRecords(userDir())) return userDir();             // 옛 판을 쓰던 사람 — 잃지 않게
+  return canWrite(beside) ? beside : userDir();            // 새로 시작: 보이는 곳에, 못 쓰면 사용자 폴더
+}
+
+/** 그 폴더에 이미 쓰던 기록이 있는가. */
+const hasRecords = (dir) =>
+  fs.existsSync(path.join(dir, 'podam.sqlite')) || fs.existsSync(path.join(dir, 'mm.sqlite'));
+
+/** 거기에 쓸 수 있는가 (`Program Files` 처럼 막힌 자리를 가려낸다). */
+function canWrite(dir) {
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+    const probe = path.join(dir, '.write-test');
+    fs.writeFileSync(probe, '');
+    fs.rmSync(probe, { force: true });
+    return true;
+  } catch {
+    return false;
   }
-  return userDir();
 }
 
 /**
@@ -84,10 +116,28 @@ function configFile() {
 }
 
 /**
- * 모듈 폴더. **여기에 폴더를 넣으면 기능이 붙는다.**
- * 데이터 쪽에 두는 이유: 앱을 새 판으로 갈아도 넣어 둔 모듈이 남아야 하기 때문이다.
+ * **모듈을 찾는 곳들.** 앞에서부터 차례로 훑고, 나온 것을 모두 실는다.
+ *
+ *   1. 프로그램 옆의 `modules`  — 배포판에 따라온 공식 모듈이 여기 있다
+ *   2. 데이터 폴더의 `modules`  — 나중에 받아 넣는 것. 새 판으로 갈아도 남는다
+ *
+ * 한 곳으로 모으고 옮기지 않는다 — 사람이 넣지 않은 곳에 파일을 만들어 두는 것은
+ * 갈할 일이고, 어느 쏪이 진짜인지 헷갈리게 만든다.
  */
-const modulesDir = () => path.resolve(process.env.PODAM_MODULES_DIR || path.join(dataDir(), 'modules'));
+function modulesDirs() {
+  if (process.env.PODAM_MODULES_DIR) return [path.resolve(process.env.PODAM_MODULES_DIR)];
+  const out = [];
+  for (const dir of [path.join(APP_DIR, 'modules'), path.join(APP_DIR, '..', 'modules')]) {
+    const at = path.resolve(dir);
+    if (fs.existsSync(at) && !out.includes(at)) out.push(at);
+  }
+  const mine = path.join(dataDir(), 'modules');
+  if (!out.includes(mine)) out.push(mine);
+  return out;
+}
+
+/** 새로 받은 모듈을 넣으라고 알려 줄 자리 (막 찾는 곳). */
+const modulesDir = () => modulesDirs()[0];
 
 /** 런처가 쓰는 자리들. */
 const runFile = () => path.join(dataDir(), 'run.json');
@@ -96,5 +146,5 @@ const binDir = () => path.join(dataDir(), 'bin');
 
 module.exports = {
   APP_DIR, CORE_DIR, isPortable, userDir,
-  dataDir, dbFile, configFile, modulesDir, runFile, logDir, binDir,
+  dataDir, dbFile, configFile, modulesDir, modulesDirs, runFile, logDir, binDir,
 };

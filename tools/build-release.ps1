@@ -45,12 +45,24 @@ if (-not (Test-Path "$b\build\Release\better_sqlite3.node")) {
   throw 'better_sqlite3.node 가 없습니다 — npm ci 를 먼저 하세요'
 }
 
-# ── 공식 모듈 (처음 켰을 때 쓸 것이 있도록) ──────────────────────────────────
+# ── 모듈 ────────────────────────────────────────────────────────────────────
+# `modules` 는 **비워 둔다** — 받자마자 모든 기능이 켜져 있는 것을 원하지 않는 사람도 있다.
+# 공식 모듈은 옆에 따로 두고, 쓸 것만 끌어다 넣게 한다.
+New-Item -ItemType Directory -Force "$out\modules" | Out-Null
+$guide = @"
+여기에 모듈 폴더를 넣고 포담을 다시 켜면 그 기능이 붙습니다.
+
+- 옆의 「모듈 모음」 폴더에 공식 모듈이 들어 있습니다. 쓸 것만 이리로 옮기세요.
+- 잠깐 끄고 싶으면 폴더 이름 앞에 _ 를 붙이세요 (기록은 남습니다).
+- 새 모듈은 받아서 여기에 풀면 됩니다.
+"@
+Set-Content "$out\modules\여기에 넣으세요.txt" -Value $guide -Encoding utf8
+
 if ($ModulesFrom -and (Test-Path $ModulesFrom)) {
   Write-Host '  공식 모듈 담는 중…'
-  New-Item -ItemType Directory -Force "$out\app\modules-starter" | Out-Null
+  New-Item -ItemType Directory -Force "$out\모듈 모음" | Out-Null
   Get-ChildItem $ModulesFrom -Directory | Where-Object { $_.Name -ne 'node_modules' } | ForEach-Object {
-    Copy-Item -Recurse $_.FullName "$out\app\modules-starter\"
+    Copy-Item -Recurse $_.FullName "$out\모듈 모음\"
   }
 }
 
