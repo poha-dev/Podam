@@ -17,7 +17,9 @@ $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
 if (-not $NodeVersion) { $NodeVersion = "v$(node -p 'process.versions.node')" }
-$name = "포담-$Version-win-x64"
+$name = "포담-$Version-win-x64"            # 푼 사람이 보는 폴더 이름
+# 압축 파일 이름은 ASCII 로 — 깃허브 Releases 가 한글을 떼어 버린다.
+$zipName = "podam-$Version-win-x64"
 $out  = Join-Path $root "dist\$name"
 $work = Join-Path $root 'dist'
 
@@ -81,7 +83,7 @@ Copy-Item '읽어주세요.txt' "$out\" -ErrorAction SilentlyContinue
 
 # ── 꾸리기 ───────────────────────────────────────────────────────────────────
 Write-Host '  압축하는 중…'
-Compress-Archive "$out" "$work\$name.zip" -Force
-$mb = [math]::Round((Get-Item "$work\$name.zip").Length / 1MB, 1)
+Compress-Archive "$out" "$work\$zipName.zip" -Force
+$mb = [math]::Round((Get-Item "$work\$zipName.zip").Length / 1MB, 1)
 Write-Host ""
-Write-Host "  됐습니다 — dist\$name.zip  ($mb MB)" -ForegroundColor Green
+Write-Host "  됐습니다 — dist\$zipName.zip  ($mb MB)" -ForegroundColor Green
